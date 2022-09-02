@@ -14,7 +14,7 @@ LiquidCrystal lcd(12, 7, 5, 4, 3, 2);
 
 // Define some NeoPatterns for the two rings and the stick
 // as well as some completion routines
-NeoPatterns strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800, NULL);//, &Ring1Complete);
+NeoPatterns strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 //Initialize IR Receiver
 IRrecv irrecv(IR_PIN);
@@ -27,21 +27,6 @@ bool powerOn = true;
 //List of all possible button inputs
 String codes[22] = {"PWR", "VL+", "FNC", "LFT", "PP ", "RGT", "DWN", "VL-", "UP ",
 "0  ", "EQ ", "ST ", "1  ", "2  ", "3  ", "4  ", "5  ", "6  ", "7  ", "8  ", "9  "};
-
-/**
- * Possible strip modes
- * 0: Red
- * 1: Grn
- * 2: Blu
- * 3: Wht
- * 4: Rainbow fade
- * 5: Rainbow chase
- * 6: Music bar fill, rainbow
- * 7: July 4th
- * 8: Adjust hue, solid
- * 9: Adjust hue, music
-**/
-short modes[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
 // Initialize button id to error value
 int id = -1;
@@ -104,6 +89,15 @@ void codeToStr(long hexVal) {
     }
 }
 
+int digits(int n) {
+  int count = 0;
+  do {
+    n /= 10;
+    ++count;
+  } while (n != 0);
+  return count;
+}
+
 void performAction(int idx) {
     // Power button pressed
     if (idx == 0) {
@@ -115,12 +109,11 @@ void performAction(int idx) {
         else {
           setupLCD();
           updateMode();
-          strip.neopx->show();
         }
     }
     if(powerOn) {
       //Hue shifting
-      if(mode == 8 || mode == 9) {
+      if(strip.neopx->extraInfo.hue) {
         //Hue shifting left
         if(idx == 3) {
           if(hue > 0)
@@ -172,17 +165,21 @@ void performAction(int idx) {
           mode = idx - 11;
       }
 
-      //Print mode
+      // Print mode
       lcd.setCursor(6, 0);
       lcd.print(mode);
 
-      //Print brightness
+      // Print brightness
       snprintf(br, sizeof(br), "%03d", stripBrightness);
       lcd.setCursor(13, 0);
       lcd.print(br);
 
+      // Zero pad hue and print
       snprintf(h, sizeof(h), "%03d", hue);
       lcd.setCursor(13, 1);
+      lcd.print("000");
+      int pos = 16 - digits(hue);
+      lcd.setCursor(pos, 1);
       lcd.print(hue);
 
       updateMode();
@@ -190,13 +187,7 @@ void performAction(int idx) {
 }
 
 void updateMode() {
-  if(mode <= 4 || mode == 6 || mode == 7) {
-    strip.init(mode, stripBrightness, 0, 0);
-  } else if(mode == 5) {
-    strip.init(mode, stripBrightness, 100, 0);
-  } else if(mode >= 8) {
-    strip.init(mode, stripBrightness, 0, hue);
-  }
+  strip.init(mode, stripBrightness, hue);
   strip.neopx->show();
 }
 
@@ -224,17 +215,12 @@ void setupLCD() {
   lcd.print(hue);
 }
 
-bool isModeDynamic() {
-  return ((mode >= 4 && mode <= 7) || mode == 9);
-}
-
 void wipe() {
   for(unsigned int i = 0; i < strip.neopx->numPixels(); i++) {
     strip.neopx->setPixelColor(i, strip.neopx->Color(0, 0, 0));
   }
   strip.neopx->show();
 }
-
 
 void setup()
 {
@@ -263,23 +249,23 @@ void loop()
   digitalWrite(BACKLIGHT, powerOn);
 
   // Get input from sound card, manipulate it to fit our number of leds
-  if(mode == 6 || mode == 7 || mode == 9) {
+  if(strip.neopx->extraInfo.sound) {
     int input = analogRead(ENVELOPE);
     Serial.println(input);
     unsigned int reading = (input * input) / SENS;
-    strip.neopx->numLeds = (reading);
+    strip.neopx->setNumAudioLeds(reading);
   }
 
-  if(mode == 9)
-    strip.neopx->Color2 = hue;
+  if(strip.neopx->extraInfo.hue)
+    strip.neopx->setInputHue(hue);
 
   // Store index before receiving a signal
-  int tempI = strip.neopx->Index;
+  int tempI = strip.neopx->getIndex();
 
   // If we get something from the receiver
   if(irrecv.decode()) {
     // Any signal received during a dynamically updating pattern will be malformed, so we need a second input
-    if(isModeDynamic()) {
+    if(strip.neopx->extraInfo.dynamic) {
       modeChange = true;
     }
 
@@ -292,11 +278,13 @@ void loop()
 
     // Restore signal after updating mode
     if(id != mode)
-      strip.neopx->Index = tempI;
+      strip.neopx->setIndex(tempI);
 
     // Resume receiving input
     irrecv.resume();
   }
+
+  strip.neopx->setBrightness(stripBrightness);
 
   // Give users one second to input another IR signal
   unsigned long currentMillis = millis();
@@ -308,8 +296,7 @@ void loop()
   }
 
   // Update strip if dynamic and user has not requested an input
-  if(powerOn && !modeChange && isModeDynamic()) {
-    strip.neopx->brightness = stripBrightness;
+  if(powerOn && !modeChange && strip.neopx->extraInfo.dynamic) {
     strip.update(mode);
   }
 }

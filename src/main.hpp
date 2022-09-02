@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 #include <LiquidCrystal.h>
 #include <IRremote.h>
+#include <Arduino.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -33,16 +33,15 @@ void updateMode();
 void setupLCD();
 
 /**
- * Simple function to determine whether a mode needs constant updating
- * Returns true when:
- * Theme is default, modes are 4 - 9
- * Theme is Halloween, modes are
- * Theme is Xmas, modes are
- * @returns whether a mode needs constant updating
- */
-bool isModeDynamic();
-
-/**
 * Clear all LEDs
 **/
 void wipe();
+
+/**
+ * @brief Returns number of digits in an int.
+ * Useful for displaying 0 padded numbers on the LCD screen
+ *
+ * @param n input int
+ * @return number of digits in input
+ */
+int digits(int n);
