@@ -1,6 +1,7 @@
 #include "neopatterns.hpp"
 
-void NeoPatterns::setup() {
+void NeoPatterns::setup()
+{
     pages[0].initializers[0] = &CustomNeoPixel::Red;
     pages[0].initializers[1] = &CustomNeoPixel::Green;
     pages[0].initializers[2] = &CustomNeoPixel::Blue;
@@ -19,7 +20,8 @@ void NeoPatterns::setup() {
     pages[0].updates[9] = &CustomNeoPixel::MusicFillUpdate;
 }
 
-void NeoPatterns::init(int pattern, uint8_t br, uint8_t hue) {
+void NeoPatterns::init(int pattern, uint8_t br, uint8_t hue)
+{
     neopx->extraInfo.dynamic = false;
     neopx->extraInfo.hue = false;
     neopx->extraInfo.sound = false;
@@ -31,15 +33,18 @@ void NeoPatterns::init(int pattern, uint8_t br, uint8_t hue) {
     pages[currentPage].init(pattern);
 }
 
-void NeoPatterns::update(int pattern) {
-    if((millis() - neopx->getLastUpdate()) > neopx->getInterval()) {
+void NeoPatterns::update(int pattern)
+{
+    if ((millis() - neopx->getLastUpdate()) > neopx->getInterval())
+    {
         neopx->setLastUpdate(millis());
         pages[currentPage].update(pattern);
     }
 }
 
-void NeoPatterns::incrementPage() {
-    if(currentPage + 1 == numPages)
+void NeoPatterns::incrementPage()
+{
+    if (currentPage + 1 == numPages)
         currentPage = 0;
     else
         currentPage++;
