@@ -75,7 +75,7 @@ void CustomNeoPixel::White()
 
 void CustomNeoPixel::Hue()
 {
-    extraInfo.hue = true;
+    flags.hue = true;
 
     colorSet(gamma32(ColorHSV(map(inputHue, 0, 255, 0, 65535), 255, brightness)));
     show();
@@ -86,7 +86,7 @@ void CustomNeoPixel::RainbowCycle()
     totalSteps = 255;
     direction = FORWARD;
 
-    extraInfo.dynamic = true;
+    flags.dynamic = true;
 }
 
 void CustomNeoPixel::RainbowCycleUpdate()
@@ -104,7 +104,7 @@ void CustomNeoPixel::JulyFourth()
     totalSteps = 450;
     direction = FORWARD;
 
-    extraInfo.dynamic = true;
+    flags.dynamic = true;
 }
 
 void CustomNeoPixel::JulyFourthUpdate()
@@ -157,7 +157,7 @@ void CustomNeoPixel::RainbowFade()
     totalSteps = 16383;
     direction = FORWARD;
 
-    extraInfo.dynamic = true;
+    flags.dynamic = true;
 }
 
 void CustomNeoPixel::RainbowFadeUpdate()
@@ -171,8 +171,8 @@ void CustomNeoPixel::MusicLedHue()
 {
     totalSteps = 65535;
 
-    extraInfo.dynamic = true;
-    extraInfo.sound = true;
+    flags.dynamic = true;
+    flags.sound = true;
 }
 
 void CustomNeoPixel::MusicLedHueUpdate()
@@ -231,9 +231,9 @@ void CustomNeoPixel::MusicFill()
 {
     totalSteps = 65535;
 
-    extraInfo.dynamic = true;
-    extraInfo.sound = true;
-    extraInfo.hue = true;
+    flags.dynamic = true;
+    flags.sound = true;
+    flags.hue = true;
 }
 
 void CustomNeoPixel::MusicFillUpdate()
@@ -252,4 +252,60 @@ void CustomNeoPixel::MusicFillUpdate()
         }
     }
     show();
+}
+
+void CustomNeoPixel::HalloweenFade()
+{
+    totalSteps = 255 * 4;
+    direction = FORWARD;
+
+    flags.dynamic = true;
+}
+
+void CustomNeoPixel::HalloweenFadeUpdate()
+{
+    float maxBr = 255 / brightness;
+    float r, g, b;
+    float factor;
+
+    // Fade color in from black
+    if(index <= 255 || (index >= 255 * 2 && index < 255 * 3)) {
+        int idx = index;
+        if(index >= 255 * 2) {
+            idx = index - (255 * 2);
+        }
+        factor = idx / 255.0;
+    }
+    // Fade color out to black
+    if((index >= 255 && index < 255 * 2) || (index >= 255 * 3 && index < 255 * 4)) {
+        int idx = index;
+        if(index <= 255 * 2) {
+            idx = index - 255;
+        } else {
+            idx = index - (255 * 3);
+        }
+        factor = 1 - (idx / 255.0);
+    }
+
+    // Multiply strip brightness (upper bound) by how bright the strip should be at this point in the fade
+    // Divide by 255 to get a number in range [0, 1]
+    // Use this number to modulate the brightness while maintaining the original color
+    float power = (brightness * factor) / 255.0;
+
+    // Orange
+    if(index < 255 * 2) {
+        r = 222.0 * power;
+        b = 25.0 * power;
+        g = 0;
+    }
+    // Purple
+    else {
+        r = 150.0 * power;
+        g = 255.0 * power;
+        b = 0;
+    }
+
+    colorSet(Color(int(r), int(g), int(b)));
+    show();
+    increment();
 }

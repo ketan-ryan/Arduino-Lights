@@ -116,7 +116,7 @@ public:
     STATE state;
 
     /** Contains some extra info about the current active pattern */
-    info extraInfo;
+    info flags;
 
     /**
      * @brief Set the number of leds to turn on respective to audio level
@@ -309,4 +309,16 @@ public:
      *
      */
     void MusicFillUpdate();
+
+    /**
+     * @brief Initialize for Halloween Fade pattern
+     *
+     */
+    void HalloweenFade();
+
+    /**
+     * @brief Fade between orange and purple
+     *
+     */
+    void HalloweenFadeUpdate();
 };

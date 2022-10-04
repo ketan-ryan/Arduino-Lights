@@ -51,6 +51,12 @@ void codeToStr(long hexVal)
     {
         case 0:
             Serial.println("Repeat");
+            if(strip.neopx->state == PWR_OFF) {
+                // Unsure why but receiver will sometimes receive the repeat pattern,
+                // possibly due to noise. Ignore it if power is off to prevent lights
+                // from turning on when they shouldn't
+                id = -1;
+            }
         break;
         // These magic numbers are determined by pressing a button on the remote control
         // and noting down the corresponding output
@@ -110,7 +116,7 @@ bool isOn()
 
 void turnOn()
 {
-    strip.neopx->state = strip.neopx->extraInfo.dynamic ? ON_DYNAMIC : ON_STATIC;
+    strip.neopx->state = strip.neopx->flags.dynamic ? ON_DYNAMIC : ON_STATIC;
 }
 
 void performAction(int idx)
@@ -135,8 +141,12 @@ void performAction(int idx)
     }
     if (isOn())
     {
+        if(idx == 2) {
+            strip.incrementPage();
+            performAction(9);
+        }
         // Hue shifting
-        if (strip.neopx->extraInfo.hue)
+        if (strip.neopx->flags.hue)
         {
             // Hue shifting left
             if (idx == 3)
@@ -218,7 +228,9 @@ void performAction(int idx)
         }
 
         // Print mode
-        lcd.setCursor(6, 0);
+        lcd.setCursor(5, 0);
+        lcd.print(strip.currentPage);
+        lcd.setCursor(7, 0);
         lcd.print(mode);
 
         // Print brightness
@@ -236,13 +248,18 @@ void performAction(int idx)
 
         updateMode();
 
-        if (strip.neopx->extraInfo.dynamic)
+        if (strip.neopx->flags.dynamic)
             strip.update(mode);
     }
+    idx = -1;
 }
 
 void updateMode()
 {
+    if(mode + 1 > strip.pages[strip.currentPage].modes) {
+        mode = strip.pages[strip.currentPage].modes - 1;
+    }
+
     strip.init(mode, stripBrightness, hue);
     strip.neopx->show();
 }
@@ -258,9 +275,11 @@ void setupLCD()
     lcd.print(br);
 
     lcd.setCursor(0, 0);
-    lcd.print("Mode:    Br: ");
+    lcd.print("Mode: .  Br: ");
 
-    lcd.setCursor(6, 0);
+    lcd.setCursor(5, 0);
+    lcd.print(strip.currentPage);
+    lcd.setCursor(7, 0);
     lcd.print(mode);
 
     lcd.setCursor(0, 1);
@@ -316,7 +335,7 @@ void loop()
     if (irrecv.decode())
     {
         // Any signal received during a dynamically updating pattern will be malformed, so we need a second input
-        if (strip.neopx->extraInfo.dynamic)
+        if (strip.neopx->flags.dynamic)
         {
             modeChange = true;
         }
@@ -336,7 +355,7 @@ void loop()
     }
 
     // Get input from sound card, manipulate it to fit our number of leds
-    if (strip.neopx->extraInfo.sound)
+    if (strip.neopx->flags.sound)
     {
         int input = analogRead(ENVELOPE);
         Serial.println(input);
@@ -344,7 +363,7 @@ void loop()
         strip.neopx->setNumAudioLeds(reading);
     }
 
-    if (strip.neopx->extraInfo.hue)
+    if (strip.neopx->flags.hue)
         strip.neopx->setInputHue(hue);
 
     strip.neopx->setBrightness(stripBrightness);

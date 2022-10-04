@@ -2,6 +2,8 @@
 
 void NeoPatterns::setup()
 {
+    pages[0].modes = 10;
+    // First page initializers
     pages[0].initializers[0] = &CustomNeoPixel::Red;
     pages[0].initializers[1] = &CustomNeoPixel::Green;
     pages[0].initializers[2] = &CustomNeoPixel::Blue;
@@ -13,18 +15,26 @@ void NeoPatterns::setup()
     pages[0].initializers[8] = &CustomNeoPixel::Hue;
     pages[0].initializers[9] = &CustomNeoPixel::MusicFill;
 
+    // First page updates
     pages[0].updates[4] = &CustomNeoPixel::RainbowFadeUpdate;
     pages[0].updates[5] = &CustomNeoPixel::RainbowCycleUpdate;
     pages[0].updates[6] = &CustomNeoPixel::MusicLedHueUpdate;
     pages[0].updates[7] = &CustomNeoPixel::JulyFourthUpdate;
     pages[0].updates[9] = &CustomNeoPixel::MusicFillUpdate;
+
+    pages[1].modes = 1;
+    // Second page initializers
+    pages[1].initializers[0] = &CustomNeoPixel::HalloweenFade;
+
+    // Second page updates
+    pages[1].updates[0] = &CustomNeoPixel::HalloweenFadeUpdate;
 }
 
 void NeoPatterns::init(int pattern, uint8_t br, uint8_t hue)
 {
-    neopx->extraInfo.dynamic = false;
-    neopx->extraInfo.hue = false;
-    neopx->extraInfo.sound = false;
+    neopx->flags.dynamic = false;
+    neopx->flags.hue = false;
+    neopx->flags.sound = false;
 
     neopx->setInterval(10);
     neopx->setBrightness(br);
@@ -44,7 +54,7 @@ void NeoPatterns::update(int pattern)
 
 void NeoPatterns::incrementPage()
 {
-    if (currentPage + 1 == numPages)
+    if (currentPage + 1 > numPages)
         currentPage = 0;
     else
         currentPage++;

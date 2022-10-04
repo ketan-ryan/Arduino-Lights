@@ -12,6 +12,8 @@
 class Page
 {
 public:
+    int modes = 0;
+
     /** Reference to the LED strip */
     CustomNeoPixel *strip;
 
