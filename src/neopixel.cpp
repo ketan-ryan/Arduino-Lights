@@ -264,24 +264,29 @@ void CustomNeoPixel::HalloweenFade()
 
 void CustomNeoPixel::HalloweenFadeUpdate()
 {
-    float maxBr = 255 / brightness;
     float r, g, b;
     float factor;
 
     // Fade color in from black
-    if(index <= 255 || (index >= 255 * 2 && index < 255 * 3)) {
+    if (index <= 255 || (index >= 255 * 2 && index < 255 * 3))
+    {
         int idx = index;
-        if(index >= 255 * 2) {
+        if (index >= 255 * 2)
+        {
             idx = index - (255 * 2);
         }
         factor = idx / 255.0;
     }
     // Fade color out to black
-    if((index >= 255 && index < 255 * 2) || (index >= 255 * 3 && index < 255 * 4)) {
+    if ((index >= 255 && index < 255 * 2) || (index >= 255 * 3 && index < 255 * 4))
+    {
         int idx = index;
-        if(index <= 255 * 2) {
+        if (index <= 255 * 2)
+        {
             idx = index - 255;
-        } else {
+        }
+        else
+        {
             idx = index - (255 * 3);
         }
         factor = 1 - (idx / 255.0);
@@ -293,19 +298,68 @@ void CustomNeoPixel::HalloweenFadeUpdate()
     float power = (brightness * factor) / 255.0;
 
     // Orange
-    if(index < 255 * 2) {
+    if (index < 255 * 2)
+    {
         r = 222.0 * power;
-        b = 25.0 * power;
         g = 0;
+        b = 25.0 * power;
     }
     // Purple
-    else {
+    else
+    {
         r = 150.0 * power;
         g = 255.0 * power;
         b = 0;
     }
 
     colorSet(Color(int(r), int(g), int(b)));
+    show();
+    increment();
+}
+
+void CustomNeoPixel::HalloweenStrip()
+{
+    totalSteps = 255 * 2;
+    direction = FORWARD;
+
+    flags.dynamic = true;
+}
+
+void CustomNeoPixel::HalloweenStripUpdate()
+{
+    uint32_t full, fill;
+    float bright = brightness / 255.0;
+
+    uint32_t orange = Color(222 * bright, 0, 25 * bright);
+    uint32_t purple = Color(150 * bright, 255 * bright, 0);
+
+    if (index <= 255)
+    {
+        full = orange;
+        fill = purple;
+    }
+    else
+    {
+        full = purple;
+        fill = orange;
+    }
+
+    int idx = index;
+    if (index > 255)
+    {
+        idx = index - 255;
+    }
+
+    for (unsigned int i = 0; i < numPixels(); i++)
+    {
+        unsigned int fractionOfStrip = map(idx, 0, 255, 0, numPixels());
+
+        if (i <= fractionOfStrip)
+            setPixelColor(i, fill);
+        else
+            setPixelColor(i, full);
+    }
+
     show();
     increment();
 }

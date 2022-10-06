@@ -321,4 +321,19 @@ public:
      *
      */
     void HalloweenFadeUpdate();
+
+    /**
+     * @brief Initialize for Halloween Strip pattern
+     *
+     */
+    void HalloweenStrip();
+
+    /**
+     * @brief Strip initially full orange
+     * Fills up with purple
+     * Fills up with orange
+     * Loop
+     *
+     */
+    void HalloweenStripUpdate();
 };

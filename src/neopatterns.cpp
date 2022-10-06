@@ -22,12 +22,14 @@ void NeoPatterns::setup()
     pages[0].updates[7] = &CustomNeoPixel::JulyFourthUpdate;
     pages[0].updates[9] = &CustomNeoPixel::MusicFillUpdate;
 
-    pages[1].modes = 1;
+    pages[1].modes = 2;
     // Second page initializers
     pages[1].initializers[0] = &CustomNeoPixel::HalloweenFade;
+    pages[1].initializers[1] = &CustomNeoPixel::HalloweenStrip;
 
     // Second page updates
     pages[1].updates[0] = &CustomNeoPixel::HalloweenFadeUpdate;
+    pages[1].updates[1] = &CustomNeoPixel::HalloweenStripUpdate;
 }
 
 void NeoPatterns::init(int pattern, uint8_t br, uint8_t hue)
